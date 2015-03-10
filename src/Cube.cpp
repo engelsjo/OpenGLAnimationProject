@@ -27,6 +27,7 @@ void Cube::build(void* data) {
     
     glGenBuffers(1, &vertex_buffer);
     glGenBuffers(1, &index_buffer);
+    glGenBuffers(1, &normal_buffer);
     
     //front face
     vec3 v0 = vec3{-.5 * WIDTH, -.5 * HEIGHT, .5 * LENGTH};
@@ -49,6 +50,25 @@ void Cube::build(void* data) {
     all_points.push_back(v5);
     all_points.push_back(v6);
     all_points.push_back(v7);
+    
+    //push back the normals
+    /* use [+-1, +-1, +-1] / sqrt(3) */
+    vec3 n0 = vec3{-1/sqrt(3), -1/sqrt(3), 1/sqrt(3)};
+    vec3 n1 = vec3{1/sqrt(3), -1/sqrt(3), 1/sqrt(3)};
+    vec3 n2 = vec3{1/sqrt(3), 1/sqrt(3), 1/sqrt(3)};
+    vec3 n3 = vec3{-1/sqrt(3), 1/sqrt(3), 1/sqrt(3)};
+    vec3 n4 = vec3{-1/sqrt(3), 1/sqrt(3), -1/sqrt(3)};
+    vec3 n5 = vec3{1/sqrt(3), 1/sqrt(3), -1/sqrt(3)};
+    vec3 n6 = vec3{1/sqrt(3), -1/sqrt(3), -1/sqrt(3)};
+    vec3 n7 = vec3{-1/sqrt(3), -1/sqrt(3), -1/sqrt(3)};
+    all_normals.push_back(n0);
+    all_normals.push_back(n1);
+    all_normals.push_back(n2);
+    all_normals.push_back(n3);
+    all_normals.push_back(n4);
+    all_normals.push_back(n5);
+    all_normals.push_back(n6);
+    all_normals.push_back(n7);
     
     for (GLushort i = 0; i < 4; i++){ //front face indices
         all_index.push_back(i);
@@ -92,6 +112,21 @@ void Cube::build(void* data) {
     glUnmapBuffer(GL_ARRAY_BUFFER);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     
+    glBindBuffer(GL_ARRAY_BUFFER, normal_buffer);
+    glBufferData(GL_ARRAY_BUFFER, all_normals.size() * sizeof(float) * 3, NULL, GL_DYNAMIC_DRAW);
+    float *normal_ptr = (float *) glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+    
+    /* Initialize the vertices */
+    float *n_ptr = normal_ptr;
+    for (auto n : all_normals) {
+        n_ptr[0] = n.x;
+        n_ptr[1] = n.y;
+        n_ptr[2] = n.z;
+        n_ptr += 3;
+    }
+    glUnmapBuffer(GL_ARRAY_BUFFER);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    
     
     /* Initialize the indices */
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer);
@@ -104,9 +139,16 @@ void Cube::build(void* data) {
 
 void Cube::render(bool outline) const {
     glPushAttrib(GL_ENABLE_BIT);
-    /* bind vertex buffer */
+    
+    glDisableClientState(GL_COLOR_ARRAY);
+    glEnableClientState(GL_NORMAL_ARRAY);
+    
+    
     glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
     glVertexPointer(3, GL_FLOAT, 0, 0);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, normal_buffer);
+    glNormalPointer(GL_FLOAT, 0, 0);
     
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, index_buffer);
     glDrawRangeElements(GL_QUADS, 0, 0, top_count, GL_UNSIGNED_SHORT, 0);

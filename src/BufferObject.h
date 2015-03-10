@@ -21,14 +21,14 @@ using namespace std;
 
 class BufferObject {
 protected:
-    GLuint vertex_buffer, color_buffer, index_buffer;
-    std::vector <glm::vec3> all_points, all_colors;
+    GLuint vertex_buffer, color_buffer, index_buffer, normal_buffer;
+    std::vector <glm::vec3> all_points, all_colors, all_normals;
     vector<GLushort> all_index;
 private:
     bool build_complete;
 public:
     BufferObject() {
-        vertex_buffer = color_buffer = index_buffer = 0;
+        vertex_buffer = color_buffer = index_buffer = normal_buffer= 0;
         build_complete = false;
     }
 
@@ -40,6 +40,8 @@ public:
             glDeleteBuffers(1, &color_buffer);
         if (glIsBuffer(index_buffer))
             glDeleteBuffers(1, &index_buffer);
+        if (glIsBuffer(normal_buffer))
+            glDeleteBuffers(normal_buffer);
 #endif
     }
 
