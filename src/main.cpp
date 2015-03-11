@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <ctime>
 #include <time.h>
-#include <thread>
 
 #define GLEW_STATIC
 #include <GL/glew.h>
@@ -48,6 +47,8 @@ Tank tank;
 
 glm::mat4 camera_cf, light1_cf, light0_cf;
 glm::mat4 tank_cf;
+
+float left_speed, right_speed;
 
 /* light source setting */
 GLfloat light0_color[] = {1.0, 1.0, 1.0, 1.0};   /* color */
@@ -225,16 +226,18 @@ void key_handler (GLFWwindow *win, int key, int scan_code, int action, int mods)
             case GLFW_KEY_DOWN:
                 camera_cf = glm::translate(glm::vec3{0, .05, 0}) * camera_cf;
                 break;
-            case GLFW_KEY_0:
-            case GLFW_KEY_1:
-            case GLFW_KEY_2:
-            case GLFW_KEY_3:
-            case GLFW_KEY_4:
-            case GLFW_KEY_5:
-            case GLFW_KEY_6:
-                /* rebuild the model at different level of detail */
-                //int N = key - GLFW_KEY_0;
-                //one.build((void *)&N);
+            case GLFW_KEY_W:
+                left_speed++;
+                break;
+            case GLFW_KEY_S:
+                left_speed--;
+                break;
+            case GLFW_KEY_E:
+                right_speed++;
+                break;
+            case GLFW_KEY_D:
+                right_speed--;
+                break;
                 break;
         }
     }
@@ -304,6 +307,41 @@ void update() {
     float elapsedTime = (clock() - lastTime)/1000.0;
 
     //update the coordinate frames here
+    float dist = (right_speed + left_speed) * elapsedTime /200000.0;
+
+    if(left_speed == right_speed) {
+        tank_cf *= glm::translate(glm::vec3{30*dist,0,0});
+    }
+    else if(-left_speed == right_speed) {
+        float theta = 180 * right_speed * elapsedTime /100000.0 / (M_PI * 2.5);
+        tank_cf *= glm::rotate(theta, glm::vec3{0,0,1});
+    }
+    else if(left_speed == 0) {
+        float theta = 180 * right_speed * elapsedTime /100000.0 / (M_PI * 2.5);
+        tank_cf *= glm::translate(glm::vec3{2.5*sin(theta),0,0});
+        tank_cf *= glm::rotate(theta, glm::vec3{0,0,1});
+    }
+    else if (right_speed == 0) {
+        float theta = 180 * left_speed * elapsedTime /100000.0 / (M_PI * 2.5);
+        tank_cf *= glm::translate(glm::vec3{2.5*sin(theta),0,0});
+        tank_cf *= glm::rotate(-theta, glm::vec3{0,0,1});
+    }
+    else if(left_speed < right_speed){
+        float rat = (float) left_speed/right_speed;
+        float r = 2.5 * (rat+1)/(rat-1);
+        float theta = 180 * dist / (M_PI * r);
+        tank_cf *= glm::translate(glm::vec3{r*sin(theta),0,0});
+        tank_cf *= glm::rotate(-theta, glm::vec3{0,0,1});
+    }
+    else {
+        float rat = (float) right_speed/left_speed;
+        float r = 2.5 * (rat+1)/(rat-1);
+        float theta = -180 * dist / (M_PI * r);
+        tank_cf *= glm::translate(glm::vec3{-r*sin(theta),0,0});
+        tank_cf *= glm::rotate(-theta, glm::vec3{0,0,1});
+    }
+
+    //tank.update(rdist, ldist);
 }
 
 int main(){
@@ -352,7 +390,9 @@ int main(){
     win_refresh(win);
 
     while (!glfwWindowShouldClose(win)) {
-        glfwWaitEvents();
+        glfwPollEvents();
+        update();
+        win_refresh(win);
     }
     glfwDestroyWindow(win);
     glfwTerminate();
