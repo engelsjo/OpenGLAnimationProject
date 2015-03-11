@@ -13,9 +13,9 @@
 #include "BufferObject.h"
 class Cube : public BufferObject {
 private:
-    vector<float> ambient_v;
-    vector<float> diffuse_v;
-    vector<float> specular_v;
+    float AMBIENT[4];
+    float DIFFUSE[4];
+    float SPECULAR[4];
     float shininess;
 
     float LENGTH = 1.0;

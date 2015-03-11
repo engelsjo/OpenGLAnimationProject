@@ -138,17 +138,19 @@ void Cube::build(void* data) {
     ReflectanceTable material_table;
     material_table.init_table();
 
-    ambient_v = material_table.lookup_table[MATERIAL]["AMBIENT"];
-    diffuse_v = material_table.lookup_table[MATERIAL]["DIFFUSE"];
-    specular_v = material_table.lookup_table[MATERIAL]["SPECULAR"];
-    shininess = material_table.lookup_table[MATERIAL]["SHININESS"][0];
+    vector<float> ambient_v = material_table.lookup_table[MATERIAL]["AMBIENT"];
+    vector<float> diffuse_v = material_table.lookup_table[MATERIAL]["DIFFUSE"];
+    vector<float> specular_v = material_table.lookup_table[MATERIAL]["SPECULAR"];
+    float shininess = material_table.lookup_table[MATERIAL]["SHININESS"][0];
+
+    for(int i = 0; i < 4; i++) {
+        AMBIENT[i] = ambient_v[i];
+        DIFFUSE[i] = diffuse_v[i];
+        SPECULAR[i] = specular_v[i];
+    }
 }
 
 void Cube::render(bool outline) const {
-    float AMBIENT[] = {ambient_v[0], ambient_v[1], ambient_v[2], ambient_v[3]};
-    float DIFFUSE[] = {diffuse_v[0], diffuse_v[1], diffuse_v[2], diffuse_v[3]};
-    float SPECULAR[] = {specular_v[0], specular_v[1], specular_v[2], specular_v[3]};
-
     glMaterialfv(GL_FRONT, GL_AMBIENT, AMBIENT);
     glMaterialfv(GL_FRONT, GL_DIFFUSE, DIFFUSE);
     glMaterialfv(GL_FRONT, GL_SPECULAR, SPECULAR);
