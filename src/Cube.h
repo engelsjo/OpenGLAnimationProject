@@ -13,12 +13,17 @@
 #include "BufferObject.h"
 class Cube : public BufferObject {
 private:
+    vector<float> ambient_v;
+    vector<float> diffuse_v;
+    vector<float> specular_v;
+    float shininess;
+
     float LENGTH = 1.0;
     float WIDTH = 1.0;
     float HEIGHT = 1.0; /* half thick */
     string MATERIAL = "Copper";
     int top_count;
-    
+
 protected:
 public:
     void build (void*);
