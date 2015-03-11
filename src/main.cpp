@@ -182,17 +182,17 @@ void init_gl() {
 void make_model() {
     time_elapsed = 0;
     //build object models
-    ground.build_with_params(2, 400, 400, "Silver");
+    ground.build_with_params(2, 400, 400, "Emerald");
     origin.build_with_params(40, 10, 10, "Chrome");
     tank.build(nullptr);
     
     //build "moon"
     sphere.build(15, 20);
     //build spot-light
-    spot.build(1 + tan(glm::radians(40.0f)), 1, 2);
+    spot.build(1 + tan(glm::radians(40.0f)), 1, 5, "Ruby");
     
     //set the light sources
-    light0_cf = glm::translate(glm::vec3{-25, 8, 26});
+    light0_cf = glm::translate(glm::vec3{-100, 100, 75});
     
     light1_cf = glm::translate(glm::vec3{40, -10, 18});
     light1_cf = light1_cf * glm::rotate (glm::radians(-120.0f), glm::vec3{1,0,0});

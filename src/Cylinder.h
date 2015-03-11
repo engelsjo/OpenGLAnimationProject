@@ -3,9 +3,10 @@
 
 #include <vector>
 #include <GL/glew.h>
+#include "BufferObject.h"
 using namespace std;
 
-class Cylinder {
+class Cylinder{
 private:
     const int N_POINTS = 20;
 //    const float TOP_RAD = 1.0f;
@@ -14,10 +15,15 @@ private:
     GLuint v_buf, i_buf, n_buf;
     vector<float> vertices, normals;
     vector<GLushort> index;
+    string MATERIAL = "Copper";
+    float AMBIENT[4];
+    float DIFFUSE[4];
+    float SPECULAR[4];
+    float SHININESS;
 
 public:
     ~Cylinder();
-    void build(float topRad = 0.5f, float botRad = 0.5f, float height = 1.0);
+    void build(float topRad, float botRad, float height, string material);
     void render() const;
 };
 #endif

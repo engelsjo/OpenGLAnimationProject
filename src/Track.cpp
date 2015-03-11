@@ -3,7 +3,7 @@
 #include "Track.h"
 
 void Track::build (void* v) {
-    wheel.build(.5,.5,1);
+    wheel.build(.5,.5,1, "Copper");
     tread.build_with_params(.1,.2,1,"Black Rubber");
 }
 

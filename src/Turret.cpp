@@ -4,7 +4,7 @@
 
 void Turret::build (void* v) {
     turret.build_with_params(2, 3, 3, "Gold");
-    barrel.build(.3,.3,4);
+    barrel.build(.3,.3,4, "Polished Gold");
 }
 
 void Turret::render(bool b) const {

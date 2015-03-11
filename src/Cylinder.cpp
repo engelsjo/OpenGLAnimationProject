@@ -2,6 +2,7 @@
 #include <cmath>
 #include <glm/vec3.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include "ReflectanceTable.h"
 
 Cylinder::~Cylinder() {
     glDeleteBuffers(1, &v_buf);
@@ -9,7 +10,10 @@ Cylinder::~Cylinder() {
     glDeleteBuffers(1, &n_buf);
 }
 
-void Cylinder::build(float topRad, float botRad, float height) {
+void Cylinder::build(float topRad, float botRad, float height, string material) {
+    
+    MATERIAL = material;
+    
     glGenBuffers (1, &v_buf);
     glGenBuffers (1, &i_buf);
     glGenBuffers (1, &n_buf);
@@ -111,9 +115,31 @@ void Cylinder::build(float topRad, float botRad, float height) {
             index.data(), GL_STATIC_DRAW);
     /* deselect the buffer */
     glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, 0);
+    
+    
+    //init the lookup_table
+    ReflectanceTable material_table;
+    material_table.init_table();
+    
+    vector<float> ambient_v = material_table.lookup_table[MATERIAL]["AMBIENT"];
+    vector<float> diffuse_v = material_table.lookup_table[MATERIAL]["DIFFUSE"];
+    vector<float> specular_v = material_table.lookup_table[MATERIAL]["SPECULAR"];
+    float shininess = material_table.lookup_table[MATERIAL]["SHININESS"][0];
+    
+    for(int i = 0; i < 4; i++) {
+        AMBIENT[i] = ambient_v[i];
+        DIFFUSE[i] = diffuse_v[i];
+        SPECULAR[i] = specular_v[i];
+    }
+    SHININESS = shininess;
 }
 
 void Cylinder::render() const {
+    //set up light components
+    glMaterialfv(GL_FRONT, GL_AMBIENT, AMBIENT);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, DIFFUSE);
+    glMaterialfv(GL_FRONT, GL_SPECULAR, SPECULAR);
+    glMaterialf(GL_FRONT, GL_SHININESS, SHININESS);
     /* select the buffs */
     glPushAttrib(GL_ENABLE_BIT);
     glDisableClientState(GL_COLOR_ARRAY);
