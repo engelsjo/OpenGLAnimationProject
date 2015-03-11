@@ -16,7 +16,7 @@ private:
     float AMBIENT[4];
     float DIFFUSE[4];
     float SPECULAR[4];
-    float shininess;
+    float SHININESS;
 
     float LENGTH = 1.0;
     float WIDTH = 1.0;

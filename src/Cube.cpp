@@ -148,13 +148,14 @@ void Cube::build(void* data) {
         DIFFUSE[i] = diffuse_v[i];
         SPECULAR[i] = specular_v[i];
     }
+    SHININESS = shininess;
 }
 
 void Cube::render(bool outline) const {
     glMaterialfv(GL_FRONT, GL_AMBIENT, AMBIENT);
     glMaterialfv(GL_FRONT, GL_DIFFUSE, DIFFUSE);
     glMaterialfv(GL_FRONT, GL_SPECULAR, SPECULAR);
-    glMaterialf(GL_FRONT, GL_SHININESS, shininess);
+    glMaterialf(GL_FRONT, GL_SHININESS, SHININESS);
     glPushAttrib(GL_ENABLE_BIT);
 
     glDisableClientState(GL_COLOR_ARRAY);
