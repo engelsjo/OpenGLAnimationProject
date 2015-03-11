@@ -16,7 +16,6 @@ void Cube::build_with_params(float length, float width, float height, string mat
     LENGTH = length;
     WIDTH = width;
     HEIGHT = height;
-    
     MATERIAL = material;
     
     build((void*)0);
@@ -137,6 +136,8 @@ void Cube::build(void* data) {
 
 
 void Cube::render(bool outline) const {
+    
+    //init the lookup_table
     ReflectanceTable material_table;
     material_table.init_table();
     
@@ -145,13 +146,13 @@ void Cube::render(bool outline) const {
     vector<float> specular_v = material_table.lookup_table[MATERIAL]["SPECULAR"];
     float shininess = material_table.lookup_table[MATERIAL]["SHININESS"][0];
     
-    static float COPPER_AMBIENT[] = {ambient_v[0], ambient_v[1], ambient_v[2], ambient_v[3]};
-    static float COPPER_DIFFUSE[] = {diffuse_v[0], diffuse_v[1], diffuse_v[2], diffuse_v[3]};
-    static float COPPER_SPECULAR[] = {specular_v[0], specular_v[1], specular_v[2], specular_v[3]};
+    float AMBIENT[] = {ambient_v[0], ambient_v[1], ambient_v[2], ambient_v[3]};
+    float DIFFUSE[] = {diffuse_v[0], diffuse_v[1], diffuse_v[2], diffuse_v[3]};
+    float SPECULAR[] = {specular_v[0], specular_v[1], specular_v[2], specular_v[3]};
     
-    glMaterialfv(GL_FRONT, GL_AMBIENT, COPPER_AMBIENT);
-    glMaterialfv(GL_FRONT, GL_DIFFUSE, COPPER_DIFFUSE);
-    glMaterialfv(GL_FRONT, GL_SPECULAR, COPPER_SPECULAR);
+    glMaterialfv(GL_FRONT, GL_AMBIENT, AMBIENT);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, DIFFUSE);
+    glMaterialfv(GL_FRONT, GL_SPECULAR, SPECULAR);
     glMaterialf(GL_FRONT, GL_SHININESS, shininess);
     
     glPushAttrib(GL_ENABLE_BIT);

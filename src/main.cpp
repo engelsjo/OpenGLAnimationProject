@@ -110,7 +110,7 @@ void win_refresh (GLFWwindow *win) {
         /* Render light-0 as an emmisive object */
         if (glIsEnabled(GL_LIGHT0))
             glMaterialfv(GL_FRONT, GL_EMISSION, light0_color);
-        //sphere.render();
+        sphere.render();
         glMaterialfv(GL_FRONT, GL_EMISSION, black_color);
     }
     glPopMatrix();
