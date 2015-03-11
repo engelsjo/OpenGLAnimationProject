@@ -52,7 +52,7 @@ float left_speed, right_speed;
 
 /* light source setting */
 GLfloat light0_color[] = {1.0, 1.0, 1.0, 1.0};   /* color */
-GLfloat light1_color[] = {1.0, 1.0, 0.6, 1.0};  /* color */
+GLfloat light1_color[] = {1.0, 1.0, 0.8, 1.0};  /* color */
 GLfloat black_color[] = {0.0, 0.0, 0.0, 1.0};   /* color */
 
 using namespace std;
@@ -76,38 +76,38 @@ void win_resize (GLFWwindow * win, int width, int height)
     /* Use GL_PROJECTION to select the type of synthetic camera */
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-
+    
     /* near-plane(1) & far-plane(10) are always POSITIVE and they measure
      * the distances along the Z-axis in front of the camera */
     gluPerspective(60.0, static_cast<float> (width)/ static_cast<float> (height), 1, 10);
 }
 
 void win_refresh (GLFWwindow *win) {
-
+    
     //    cout << __PRETTY_FUNCTION__ << endl;
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT| GL_DEPTH_BUFFER_BIT);
-
+    
     glMatrixMode (GL_MODELVIEW);
     glLoadIdentity();
-
+    
     /* place the camera using the camera coordinate frame */
     glMultMatrixf (glm::value_ptr(camera_cf));
-
+    
     /* place the light source in the scene. */
     glLightfv (GL_LIGHT0, GL_POSITION, glm::value_ptr(glm::column(light0_cf, 3)));
-
+    
     /* recall that the last column of a CF is the origin of the CF */
     glLightfv (GL_LIGHT1, GL_POSITION, glm::value_ptr(glm::column(light1_cf, 3)));
-
+    
     /* we use the Z-axis of the light CF as the spotlight direction */
     glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, glm::value_ptr(glm::column(light1_cf, 2)));
-
-
+    
+    
     glPushMatrix(); //render the moon
     {
         glMultMatrixf(glm::value_ptr(light0_cf));
-
+        
         /* Render light-0 as an emmisive object */
         if (glIsEnabled(GL_LIGHT0))
             glMaterialfv(GL_FRONT, GL_EMISSION, light0_color);
@@ -115,27 +115,27 @@ void win_refresh (GLFWwindow *win) {
         glMaterialfv(GL_FRONT, GL_EMISSION, black_color);
     }
     glPopMatrix();
-
+    
     /* render the spot light using its coordinate frame */
     glPushMatrix();
     glMultMatrixf(glm::value_ptr(light1_cf));
     spot.render();
     glPopMatrix();
-
+    
     glPushMatrix(); //render the ground
     glTranslatef(0, 0, -1);
     ground.render(false);
     glPopMatrix();
-
+    
     glPushMatrix();
     glMultMatrixf(glm::value_ptr(tank_cf));
     tank.render(false);
     glPopMatrix();
-
+    
     glPushMatrix();
     origin.render(false);
     glPopMatrix();
-
+    
     /* must swap buffer at the end of render function */
     glfwSwapBuffers(win);
 }
@@ -143,17 +143,17 @@ void win_refresh (GLFWwindow *win) {
 void init_gl() {
     //set up shading / lighting
     glClearColor (0.0, 0.0, 0.0, 1.0); /* black background */
-
+    
     /* fill front-facing polygon */
     glPolygonMode (GL_FRONT, GL_FILL);
     /* draw outline of back-facing polygon */
     glPolygonMode (GL_BACK, GL_LINE);
-
+    
     /* Enable shading */
     glEnable (GL_LIGHTING);
     glEnable (GL_NORMALIZE); /* Tell OpenGL to renormalize normal vector
                               after transformation */
-
+    
     /* initialize two light sources */
     glEnable (GL_LIGHT0);
     glLightfv (GL_LIGHT0, GL_AMBIENT, light0_color);
@@ -164,18 +164,18 @@ void init_gl() {
     glLightfv (GL_LIGHT1, GL_DIFFUSE, light1_color);
     glLightfv (GL_LIGHT1, GL_SPECULAR, light1_color);
     glLightf (GL_LIGHT1, GL_SPOT_CUTOFF, 40); //spot light
-
+    
     glEnable (GL_DEPTH_TEST);
     glEnable(GL_CULL_FACE);
-
+    
     glEnableClientState(GL_VERTEX_ARRAY);
-
+    
     glLineWidth(3.0);
-
+    
     /* place the camera at Z=+5 (notice that the sign is OPPOSITE!) */
     camera_cf *= glm::translate(glm::vec3{0, 0, -100});
     camera_cf = glm::scale(glm::vec3 {.02,.02,.02}) * camera_cf;
-
+    
     tank_cf = glm::translate(glm::vec3{40,0,0});
 }
 
@@ -185,16 +185,16 @@ void make_model() {
     ground.build_with_params(2, 400, 400, "Silver");
     origin.build_with_params(40, 10, 10, "Chrome");
     tank.build(nullptr);
-
+    
     //build "moon"
     sphere.build(15, 20);
     //build spot-light
     spot.build(1 + tan(glm::radians(40.0f)), 1, 2);
-
+    
     //set the light sources
     light0_cf = glm::translate(glm::vec3{-25, 8, 26});
-
-    light1_cf = glm::translate(glm::vec3{0, -10, 18});
+    
+    light1_cf = glm::translate(glm::vec3{40, -10, 18});
     light1_cf = light1_cf * glm::rotate (glm::radians(-120.0f), glm::vec3{1,0,0});
 }
 
@@ -208,6 +208,18 @@ void key_handler (GLFWwindow *win, int key, int scan_code, int action, int mods)
     //cout << __FUNCTION__ << endl;
     if (action != GLFW_PRESS) return;
     if (mods == GLFW_MOD_SHIFT) {
+        switch(key) {
+            case GLFW_KEY_X:
+                light1_cf *= glm::translate(glm::vec3{1, 0, 0});
+                break;
+            case GLFW_KEY_Y:
+                light1_cf *= glm::translate(glm::vec3{0, 1, 0});
+                break;
+            case GLFW_KEY_Z:
+                light1_cf *= glm::translate(glm::vec3{0, 0, 1});
+                break;
+                
+        }
     }
     else {
         switch (key) {
@@ -238,6 +250,26 @@ void key_handler (GLFWwindow *win, int key, int scan_code, int action, int mods)
             case GLFW_KEY_D:
                 right_speed--;
                 break;
+            case GLFW_KEY_0: //turn off the moon
+                if (glIsEnabled(GL_LIGHT0))
+                    glDisable(GL_LIGHT0);
+                else
+                    glEnable(GL_LIGHT0);
+                break;
+            case GLFW_KEY_1: //turn off the spot light
+                if (glIsEnabled(GL_LIGHT1))
+                    glDisable(GL_LIGHT1);
+                else
+                    glEnable(GL_LIGHT1);
+                break;
+            case GLFW_KEY_X:
+                light1_cf *= glm::translate(glm::vec3{-1, 0, 0});
+                break;
+            case GLFW_KEY_Y:
+                light1_cf *= glm::translate(glm::vec3{0, -1, 0});
+                break;
+            case GLFW_KEY_Z:
+                light1_cf *= glm::translate(glm::vec3{0, 0, -1});
                 break;
         }
     }
@@ -253,7 +285,7 @@ void cursor_handler (GLFWwindow *win, double xpos, double ypos) {
     static glm::vec3 first_click;
     static glm::mat4 current_cam;
     static bool is_tracking = false;
-
+    
     glm::vec3 this_vec;
     if (state == GLFW_PRESS) {
         /* TODO: use glUnproject? */
@@ -261,7 +293,7 @@ void cursor_handler (GLFWwindow *win, double xpos, double ypos) {
         float y = -(ypos - screen_ctr_y);
         float hypot_square = x * x + y * y;
         float z;
-
+        
         /* determine whether the mouse is on the sphere or on the hyperbolic sheet */
         if (2 * hypot_square < arc_ball_rad_square)
             z = sqrt(arc_ball_rad_square - hypot_square);
@@ -278,10 +310,10 @@ void cursor_handler (GLFWwindow *win, double xpos, double ypos) {
             this_vec = glm::normalize(glm::vec3{x, y, z});
             /* determine axis of rotation */
             glm::vec3 N = glm::cross(first_click, this_vec);
-
+            
             /* determine the angle of rotation */
             float theta = glm::angle(first_click, this_vec);
-
+            
             /* create a quaternion of the rotation */
             glm::quat q{cos(theta / 2), sin(theta / 2) * N};
             /* apply the rotation w.r.t to the current camera CF */
@@ -299,16 +331,16 @@ void scroll_handler (GLFWwindow *win, double xscroll, double yscroll) {
     glm::mat4 z_translate = glm::translate((float)yscroll * glm::vec3{0, 0, .05});
     camera_cf =  z_translate * camera_cf;
     win_refresh(win);
-
+    
 }
 
 void update() {
     static long lastTime = clock();
     float elapsedTime = (clock() - lastTime)/1000.0;
-
+    
     //update the coordinate frames here
     float dist = (right_speed + left_speed) * elapsedTime /200000.0;
-
+    
     if(left_speed == right_speed) {
         tank_cf *= glm::translate(glm::vec3{30*dist,0,0});
     }
@@ -340,7 +372,7 @@ void update() {
         tank_cf *= glm::translate(glm::vec3{-r*sin(theta),0,0});
         tank_cf *= glm::rotate(-theta, glm::vec3{0,0,1});
     }
-
+    
     //tank.update(rdist, ldist);
 }
 
@@ -350,7 +382,7 @@ int main(){
         glfwTerminate();
         exit (EXIT_FAILURE);
     }
-
+    
     glfwSetErrorCallback(err_function);
     GLFWwindow * win;
     glfwWindowHint(GLFW_RESIZABLE, GL_TRUE);
@@ -359,7 +391,7 @@ int main(){
         cerr << "Can't create window" << endl;
         exit (EXIT_FAILURE);
     }
-
+    
     glfwSetWindowRefreshCallback(win, win_refresh);
     /* On Mac with Retina display there is a discrepancy between units measured in
      * "screen coordinates" and "pixels" */
@@ -369,26 +401,26 @@ int main(){
     glfwSetCursorPosCallback(win, cursor_handler);
     glfwSetScrollCallback(win, scroll_handler);
     glfwMakeContextCurrent(win);
-
+    
     /* glewInit must be invoked AFTER glfwMakeContextCurrent() */
     GLenum err = glewInit();
     if (err != GLEW_OK) {
         fprintf (stderr, "GLEW init error %s\n", glewGetErrorString(err));
         exit (EXIT_FAILURE);
     }
-
+    
     /* GL functions can be called, only AFTER the window is created */
     const GLubyte *version = glGetString (GL_VERSION);
     printf ("GL Version is %s\n", version);
-
-
+    
+    
     glfwSetWindowSize(win, 800, 600);
     glfwSwapInterval(1);
     init_gl();
     make_model();
-
+    
     win_refresh(win);
-
+    
     while (!glfwWindowShouldClose(win)) {
         glfwPollEvents();
         update();
@@ -396,6 +428,6 @@ int main(){
     }
     glfwDestroyWindow(win);
     glfwTerminate();
-
+    
     return 0;
 }
