@@ -110,7 +110,7 @@ void win_refresh (GLFWwindow *win) {
         /* Render light-0 as an emmisive object */
         if (glIsEnabled(GL_LIGHT0))
             glMaterialfv(GL_FRONT, GL_EMISSION, light0_color);
-        sphere.render();
+        //sphere.render();
         glMaterialfv(GL_FRONT, GL_EMISSION, black_color);
     }
     glPopMatrix();
@@ -181,8 +181,8 @@ void init_gl() {
 void make_model() {
     time_elapsed = 0;
     //build object models
-    ground.build_with_params(2, 400, 400, 0, 102, 0);
-    origin.build_with_params(40, 10, 10, 255, 0, 0);
+    ground.build_with_params(2, 400, 400, "Silver");
+    origin.build_with_params(40, 10, 10, "Chrome");
     tank.build(nullptr);
 
     //build "moon"

@@ -8,17 +8,16 @@
 
 #include "Cube.h"
 #include <cmath>
+#include "ReflectanceTable.h"
 /**** NOTE: Cube is centered in the middle of the cube ***** */
 
 using glm::vec3;
-void Cube::build_with_params(float length, float width, float height, float r, float g, float b){
+void Cube::build_with_params(float length, float width, float height, string material){
     LENGTH = length;
     WIDTH = width;
     HEIGHT = height;
     
-    COLOR_R = r / 255.0f;
-    COLOR_G = g / 255.0f;
-    COLOR_B = b / 255.0f;
+    MATERIAL = material;
     
     build((void*)0);
 }
@@ -138,6 +137,23 @@ void Cube::build(void* data) {
 
 
 void Cube::render(bool outline) const {
+    ReflectanceTable material_table;
+    material_table.init_table();
+    
+    vector<float> ambient_v = material_table.lookup_table[MATERIAL]["AMBIENT"];
+    vector<float> diffuse_v = material_table.lookup_table[MATERIAL]["DIFFUSE"];
+    vector<float> specular_v = material_table.lookup_table[MATERIAL]["SPECULAR"];
+    float shininess = material_table.lookup_table[MATERIAL]["SHININESS"][0];
+    
+    static float COPPER_AMBIENT[] = {ambient_v[0], ambient_v[1], ambient_v[2], ambient_v[3]};
+    static float COPPER_DIFFUSE[] = {diffuse_v[0], diffuse_v[1], diffuse_v[2], diffuse_v[3]};
+    static float COPPER_SPECULAR[] = {specular_v[0], specular_v[1], specular_v[2], specular_v[3]};
+    
+    glMaterialfv(GL_FRONT, GL_AMBIENT, COPPER_AMBIENT);
+    glMaterialfv(GL_FRONT, GL_DIFFUSE, COPPER_DIFFUSE);
+    glMaterialfv(GL_FRONT, GL_SPECULAR, COPPER_SPECULAR);
+    glMaterialf(GL_FRONT, GL_SHININESS, shininess);
+    
     glPushAttrib(GL_ENABLE_BIT);
     
     glDisableClientState(GL_COLOR_ARRAY);

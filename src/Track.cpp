@@ -4,7 +4,7 @@
 
 void Track::build (void* v) {
     wheel.build(.5,.5,1);
-    tread.build_with_params(.1,.2,1,100,90,90);
+    tread.build_with_params(.1,.2,1,"Black Rubber");
 }
 
 void Track::render(bool b) const {

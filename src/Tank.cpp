@@ -5,7 +5,7 @@
 void Tank::build (void* v) {
     slope1.build_with_params(1, 4, 1, 150, 50, 50);
     slope2.build_with_params(1, 4, 2, 150, 50, 50);
-    body.build_with_params(3, 6, 4, 150, 50, 50);
+    body.build_with_params(3, 6, 4, "Bronze");
     turret.build(v);
     track1.build(v);
     track2.build(v);

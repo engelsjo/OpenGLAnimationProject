@@ -3,7 +3,7 @@
 #include "Turret.h"
 
 void Turret::build (void* v) {
-    turret.build_with_params(2, 3, 3, 200, 100, 100);
+    turret.build_with_params(2, 3, 3, "Gold");
     barrel.build(.3,.3,4);
 }
 
