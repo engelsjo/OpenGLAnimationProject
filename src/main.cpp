@@ -29,8 +29,8 @@
 #include "Sphere.h"
 #include "Cylinder.h"
 #include "Tank.h"
-
-#define M_PI 3.1415926
+#include "HeliBase.h"
+#include "Blade.h"
 
 void init_model();
 void win_refresh(GLFWwindow*);
@@ -44,6 +44,9 @@ Cube origin;
 Sphere sphere;
 Cylinder spot;
 Tank tank;
+HeliBase helibase;
+Blade top_blade;
+Blade rear_blade;
 
 glm::mat4 camera_cf, light1_cf, light0_cf;
 glm::mat4 tank_cf;
@@ -132,9 +135,29 @@ void win_refresh (GLFWwindow *win) {
     tank.render(false);
     glPopMatrix();
     
+    
+    
+    //TODO fix this once animation...
     glPushMatrix();
-    origin.render(false);
+    glTranslatef(30, 0, 25);
+    helibase.render(false);
     glPopMatrix();
+    
+    glPushMatrix();
+    //glRotatef(45, 0, 0, 1);
+    glTranslatef(30, 0, 30.75);
+    top_blade.render(false);
+    glPopMatrix();
+    
+    glPushMatrix();
+    //glRotatef(30, 0, 0, 1);
+    glTranslatef(19, -1.2, 28.75);
+    glScalef(.25, .25, .25);
+    glRotatef(90, 1, 0, 0);
+    rear_blade.render(false);
+    glPopMatrix();
+    
+    
     
     /* must swap buffer at the end of render function */
     glfwSwapBuffers(win);
@@ -185,6 +208,10 @@ void make_model() {
     ground.build_with_params(2, 400, 400, "Emerald");
     origin.build_with_params(40, 10, 10, "Chrome");
     tank.build(nullptr);
+    helibase.build(nullptr);
+    top_blade.build(nullptr);
+    rear_blade.build(nullptr);
+    
     
     //build "moon"
     sphere.build(15, 20);
