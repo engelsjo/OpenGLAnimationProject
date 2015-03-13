@@ -1,4 +1,6 @@
 #include <iostream>
+#include <chrono>
+#include "Timer.hpp"
 #include <cmath>
 #include <algorithm>
 #include <ctime>
@@ -38,6 +40,7 @@ float arc_ball_rad_square;
 int screen_ctr_x, screen_ctr_y;
 
 float time_elapsed;
+static Timer timer;
 
 Cube ground;
 Cube origin;
@@ -50,8 +53,10 @@ Blade rear_blade;
 
 glm::mat4 camera_cf, light1_cf, light0_cf;
 glm::mat4 tank_cf;
+glm::mat4 helibase_cf, heli_blade_cf, heli_rear_cf;
 
 float left_speed, right_speed;
+float rpm, rear_rpm;
 
 /* light source setting */
 GLfloat light0_color[] = {1.0, 1.0, 1.0, 1.0};   /* color */
@@ -120,10 +125,7 @@ void win_refresh (GLFWwindow *win) {
     glPopMatrix();
     
     /* render the spot light using its coordinate frame */
-    glPushMatrix();
-    glMultMatrixf(glm::value_ptr(light1_cf));
-    spot.render();
-    glPopMatrix();
+    
     
     glPushMatrix(); //render the ground
     glTranslatef(0, 0, -1);
@@ -139,24 +141,34 @@ void win_refresh (GLFWwindow *win) {
     
     //TODO fix this once animation...
     glPushMatrix();
-    glTranslatef(30, 0, 25);
-    helibase.render(false);
+    {
+        glMultMatrixf(glm::value_ptr(helibase_cf));
+        helibase.render(false);
+        
+        glPushMatrix();
+        {
+            glMultMatrixf(glm::value_ptr(heli_blade_cf));
+            top_blade.render(false);
+            
+        }
+        glPopMatrix();
+        
+        glPushMatrix();
+        {
+            glMultMatrixf(glm::value_ptr(heli_rear_cf));
+            rear_blade.render(false);
+        }
+        glPopMatrix();
+        
+        glPushMatrix();
+        {
+            glMultMatrixf(glm::value_ptr(light1_cf));
+            spot.render();
+        }
+        glPopMatrix();
+        
+    }
     glPopMatrix();
-    
-    glPushMatrix();
-    //glRotatef(45, 0, 0, 1);
-    glTranslatef(30, 0, 30.75);
-    top_blade.render(false);
-    glPopMatrix();
-    
-    glPushMatrix();
-    //glRotatef(30, 0, 0, 1);
-    glTranslatef(19, -1.2, 28.75);
-    glScalef(.25, .25, .25);
-    glRotatef(90, 1, 0, 0);
-    rear_blade.render(false);
-    glPopMatrix();
-    
     
     
     /* must swap buffer at the end of render function */
@@ -200,6 +212,16 @@ void init_gl() {
     camera_cf = glm::scale(glm::vec3 {.02,.02,.02}) * camera_cf;
     
     tank_cf = glm::translate(glm::vec3{40,0,0});
+    
+    //set up helicopter's cfs
+    helibase_cf = glm::translate(glm::vec3{30, 0, 25});
+    heli_blade_cf = glm::translate(glm::vec3{0, 0, 5.75}) * glm::rotate (glm::radians(45.0f), glm::vec3{0,0,1});
+    heli_rear_cf =  glm::translate(glm::vec3{-11, -1.2, 3.75}) * glm::scale(glm::vec3{.25, .25, .25}) * glm::rotate (glm::radians(90.0f), glm::vec3{1,0,0});
+    
+    //init the rpm speed
+    rpm = 100;
+    rear_rpm = 100;
+    
 }
 
 void make_model() {
@@ -208,6 +230,8 @@ void make_model() {
     ground.build_with_params(2, 400, 400, "Emerald");
     origin.build_with_params(40, 10, 10, "Chrome");
     tank.build(nullptr);
+    
+    //build the helicopter
     helibase.build(nullptr);
     top_blade.build(nullptr);
     rear_blade.build(nullptr);
@@ -216,13 +240,12 @@ void make_model() {
     //build "moon"
     sphere.build(15, 20);
     //build spot-light
-    spot.build(1 + tan(glm::radians(40.0f)), 1, 5, "Ruby");
+    spot.build(1 + tan(glm::radians(20.0f)), 1, 2, "Ruby");
     
     //set the light sources
     light0_cf = glm::translate(glm::vec3{-100, 100, 75});
     
-    light1_cf = glm::translate(glm::vec3{40, -10, 18});
-    light1_cf = light1_cf * glm::rotate (glm::radians(-120.0f), glm::vec3{1,0,0});
+    light1_cf = glm::translate(glm::vec3{3.5, 0, 0}) * glm::rotate(glm::radians(180.0f), glm::vec3{1, 0, 0});
 }
 
 void switch_camera_mode() {
@@ -244,6 +267,15 @@ void key_handler (GLFWwindow *win, int key, int scan_code, int action, int mods)
                 break;
             case GLFW_KEY_Z:
                 light1_cf *= glm::translate(glm::vec3{0, 0, 1});
+                break;
+            case GLFW_KEY_2:
+                helibase_cf *= glm::translate(glm::vec3{-1, 0, 0});
+                break;
+            case GLFW_KEY_3:
+                helibase_cf *= glm::translate(glm::vec3{0, -1, 0});
+                break;
+            case GLFW_KEY_4:
+                helibase_cf *= glm::translate(glm::vec3{0, 0, -1});
                 break;
                 
         }
@@ -276,6 +308,27 @@ void key_handler (GLFWwindow *win, int key, int scan_code, int action, int mods)
                 break;
             case GLFW_KEY_D:
                 right_speed--;
+                break;
+            case GLFW_KEY_P:
+                rpm += 5;
+                break;
+            case GLFW_KEY_L:
+                rpm -= 5;
+                break;
+            case GLFW_KEY_O:
+                rear_rpm += 5;
+                break;
+            case GLFW_KEY_K:
+                rear_rpm += 5;
+                break;
+            case GLFW_KEY_2:
+                helibase_cf *= glm::translate(glm::vec3{1, 0, 0});
+                break;
+            case GLFW_KEY_3:
+                helibase_cf *= glm::translate(glm::vec3{0, 1, 0});
+                break;
+            case GLFW_KEY_4:
+                helibase_cf *= glm::translate(glm::vec3{0, 0, 1});
                 break;
             case GLFW_KEY_0: //turn off the moon
                 if (glIsEnabled(GL_LIGHT0))
@@ -361,9 +414,33 @@ void scroll_handler (GLFWwindow *win, double xscroll, double yscroll) {
     
 }
 
+void update_heli(float elapsedTime)
+{
+    //function for updating the helicopter
+    
+    //calc the big blade spin
+    float rps = rpm / 60.0;
+    float rotations = rps * elapsedTime;
+    float theta = rotations * 360;
+    heli_blade_cf *= glm::rotate(theta, glm::vec3{0, 0, 1});
+    
+    //calc the small blade spin
+    rps = rear_rpm / 60.0;
+    rotations = rps * elapsedTime;
+    theta = rotations * 360;
+    heli_rear_cf *= glm::rotate(theta, glm::vec3{0, 0, 1});
+    
+}
+
 void update() {
+    auto elapsed_time = timer.elapsed() * 1000;
+    timer.reset();
+    
     static long lastTime = clock();
     float elapsedTime = (clock() - lastTime)/1000.0;
+    
+    //update the helicopter cfs
+    update_heli(elapsed_time);
     
     //update the coordinate frames here
     float dist = (right_speed + left_speed) * elapsedTime /200000.0;
@@ -402,6 +479,7 @@ void update() {
     
     //tank.update(rdist, ldist);
 }
+
 
 int main(){
     if(!glfwInit()) {
@@ -450,6 +528,7 @@ int main(){
     
     while (!glfwWindowShouldClose(win)) {
         glfwPollEvents();
+        timer = Timer();
         update();
         win_refresh(win);
     }
