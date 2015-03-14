@@ -3,8 +3,8 @@
 #include "Tank.h"
 
 void Tank::build (void* v) {
-    slope1.build_with_params(1, 4, 1, "Copper");
-    slope2.build_with_params(1, 4, 2, "Copper");
+    slope1.build_with_params(1, 4, 1, 0, 0, 0);
+    slope2.build_with_params(1, 4, 2, 255, 255, 255);
     body.build_with_params(3, 6, 4, "Bronze");
     turret.build(v);
     track1.build(v);

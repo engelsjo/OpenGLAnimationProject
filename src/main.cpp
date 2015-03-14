@@ -27,12 +27,14 @@
 #include <GLFW/glfw3.h>
 
 #include <math.h>
+#include <stdlib.h>
 #include "Cube.h"
 #include "Sphere.h"
 #include "Cylinder.h"
 #include "Tank.h"
 #include "HeliBase.h"
 #include "Blade.h"
+#include "TreeFromQuadrics.h"
 
 void init_model();
 void win_refresh(GLFWwindow*);
@@ -50,6 +52,9 @@ Tank tank;
 HeliBase helibase;
 Blade top_blade;
 Blade rear_blade;
+TreeFromQuadrics tree;
+vector<int> tree_xs;
+vector<int> tree_ys;
 
 glm::mat4 camera_cf, light1_cf, light0_cf;
 glm::mat4 tank_cf;
@@ -198,6 +203,18 @@ void win_refresh (GLFWwindow *win) {
 
     }
     glPopMatrix();
+    
+    //render gluquadrics
+    int nbr_of_trees = 75;
+    for (int i = 0; i < nbr_of_trees; i++){ //plant nbr_of_trees
+        
+        glPushMatrix();
+        if (tree.cyl.q_cyl != nullptr && tree.sphere.q_cyl != nullptr){
+            glTranslatef(tree_xs[i], tree_ys[i], 0.0f);
+            tree.render();
+        }
+        glPopMatrix();
+    }
 
 
     /* must swap buffer at the end of render function */
@@ -280,11 +297,32 @@ void make_model() {
 
     //build projectile
     projectile.build_with_params(.2,1,.2,"Chrome");
+    
+    //build gluquadrics
+    tree.build();
 
     //set the light sources
     light0_cf = glm::translate(glm::vec3{-100, 100, 75});
 
     light1_cf = glm::translate(glm::vec3{3.5, 0, 1}) * glm::rotate(glm::radians(180.0f), glm::vec3{1, 0, 0});
+    
+    //render gluquadrics and remember their locations
+    int nbr_of_trees = 75;
+    for (int i = 0; i < nbr_of_trees; i++){ //plant nbr_of_trees
+        int rand_pos_or_neg = rand() % 2;
+        int rand_x = rand() % 150;
+        rand_x = rand_pos_or_neg ? rand_x * - 1 : rand_x;
+        int rand_y = rand() % 150;
+        tree_xs.push_back(rand_x);
+        tree_ys.push_back(rand_y);
+        
+        glPushMatrix();
+        glTranslatef((float)rand_x, (float)rand_y, 0.0f);
+        if (tree.cyl.q_cyl != nullptr && tree.sphere.q_cyl != nullptr){
+            tree.render();
+        }
+        glPopMatrix();
+    }
 
 }
 
@@ -312,6 +350,11 @@ void key_handler (GLFWwindow *win, int key, int scan_code, int action, int mods)
             case GLFW_KEY_Z:
                 helibase_cf *= glm::translate(glm::vec3{0, 0, -1});
                 break;
+            case GLFW_KEY_P:
+                if(pause)
+                    pause = false;
+                else
+                    pause = true;
 
         }
     }
@@ -400,18 +443,13 @@ void key_handler (GLFWwindow *win, int key, int scan_code, int action, int mods)
             case GLFW_KEY_H: //right
                 helibase_cf = helibase_cf * glm::rotate(.1f, glm::vec3{1, 0, 0});
                 break;
-            case GLFW_KEY_A: //turn off heli auto mode
+            case GLFW_KEY_M: //turn off heli auto mode
                 auto_pilot = auto_pilot ? false : true;
                 if (auto_pilot){
                     helibase_cf = glm::translate(glm::vec3{0, 0, 0}); //reset the heli when going to auto pilot
                     helibase_cf = glm::translate(glm::vec3{0, 0, 25}) * glm::translate(glm::vec3{0, 75, 0});
                 }
                 break;
-            case GLFW_KEY_P:
-                if(pause)
-                    pause = false;
-                else
-                    pause = true;
         }
     }
     win_refresh(win);
@@ -590,6 +628,9 @@ void update() {
 
 
 int main(){
+    /* initialize random seed: */
+    srand (time(NULL));
+    
     if(!glfwInit()) {
         cerr << "Can't initialize GLFW" << endl;
         glfwTerminate();
