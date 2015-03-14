@@ -44,6 +44,7 @@ static Timer timer;
 
 Cube origin;
 Sphere sphere;
+Cube projectile;
 Cylinder spot;
 Tank tank;
 HeliBase helibase;
@@ -53,8 +54,11 @@ Blade rear_blade;
 glm::mat4 camera_cf, light1_cf, light0_cf;
 glm::mat4 tank_cf;
 glm::mat4 helibase_cf, heli_blade_cf, heli_rear_cf;
+glm::mat4 projectile_cf;
 
 float left_speed, right_speed;
+float turret_speed;
+float proj_yspeed;
 float rpm, rear_rpm;
 
 float heli_auto_rad = 75.0f;
@@ -157,6 +161,11 @@ void win_refresh (GLFWwindow *win) {
     glPopMatrix();
 
     glPushMatrix();
+    glMultMatrixf(glm::value_ptr(projectile_cf));
+    projectile.render(false);
+    glPopMatrix();
+
+    glPushMatrix();
     {
         glMultMatrixf(glm::value_ptr(helibase_cf));
         helibase.render(false);
@@ -238,6 +247,13 @@ void init_gl() {
     rpm = 100;
     rear_rpm = 100;
 
+    right_speed = 0;
+    left_speed = 0;
+    turret_speed = 0;
+
+    //create projectile off screen
+    projectile_cf = glm::translate(glm::vec3{0,0,-1000});
+    proj_yspeed = 0;
 }
 
 void make_model() {
@@ -257,6 +273,9 @@ void make_model() {
     //build spot-light
     spot.build(1 + tan(glm::radians(20.0f)), 1, 2, "Ruby");
 
+    //build projectile
+    projectile.build_with_params(.2,1,.2,"Chrome");
+
     //set the light sources
     light0_cf = glm::translate(glm::vec3{-100, 100, 75});
 
@@ -264,8 +283,12 @@ void make_model() {
 
 }
 
-void switch_camera_mode() {
-    //switch between first and third person views
+void fire() {
+    proj_yspeed = 2;
+    projectile_cf = tank_cf;
+    projectile_cf *= glm::rotate(tank.turret_position, glm::vec3{0,0,1});
+    projectile_cf *= glm::translate(glm::vec3{4,0,5});
+    projectile_cf *= glm::rotate(27.0f, glm::vec3{0,1,0});
 }
 
 /* action: GLFW_PRESS, GLFW_RELEASE, or GLFW_REPEAT */
@@ -316,6 +339,12 @@ void key_handler (GLFWwindow *win, int key, int scan_code, int action, int mods)
             case GLFW_KEY_D:
                 right_speed--;
                 break;
+            case GLFW_KEY_Q:
+                turret_speed++;
+                break;
+            case GLFW_KEY_A:
+                turret_speed--;
+                break;
             case GLFW_KEY_P:
                 rpm += 5;
                 break;
@@ -351,6 +380,9 @@ void key_handler (GLFWwindow *win, int key, int scan_code, int action, int mods)
                 break;
             case GLFW_KEY_5:
                 rpm = 0;
+                break;
+            case GLFW_KEY_SPACE:
+                fire();
                 break;
         }
     }
@@ -490,7 +522,13 @@ void update() {
 
     float rdist = right_speed * elapsedTime / 200000.0;
     float ldist = left_speed * elapsedTime / 200000.0;
-    tank.update(rdist, ldist);
+    float tdist = turret_speed * elapsedTime /200000.0;
+    tank.update(rdist, ldist, tdist);
+
+
+    projectile_cf *= glm::translate(glm::vec3{elapsedTime*4, proj_yspeed * elapsedTime, 0});
+    projectile_cf *= glm::rotate((float)atan((proj_yspeed-9.81*elapsedTime)/4) - (float)atan(proj_yspeed/4), glm::vec3{0,1,0});
+    proj_yspeed -= 9.81*elapsedTime;
 }
 
 

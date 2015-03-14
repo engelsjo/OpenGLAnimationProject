@@ -11,18 +11,20 @@
 #include "Cube.h"
 class Tank : public BufferObject {
 private:
-    TPillar slope1;
-    TPillar slope2;
     Cube body;
     Turret turret;
     Track track1;
     Track track2;
     Guard guard;
+    TPillar slope1;
+    TPillar slope2;
 
 protected:
 public:
+    float turret_position;
+
     void build (void*);
     void render(bool) const;
-    void update(float r, float l);
+    void update(float r, float l, float t);
 };
 #endif // TANK_H_INCLUDED

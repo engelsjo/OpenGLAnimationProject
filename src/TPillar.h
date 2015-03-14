@@ -11,21 +11,21 @@
 
 #include <stdio.h>
 #include "BufferObject.h"
-#include "ReflectanceTable.h"
-
 class TPillar : public BufferObject {
 private:
     float LENGTH = 1;
     float WIDTH = .5;
     float HEIGHT = 1;
-
-    string MATERIAL = "Jade";
-
-
+    
+    float COLOR_R = 255;
+    float COLOR_G = 255;
+    float COLOR_B = 255;
+    
+    
 protected:
 public:
     void build (void*);
-    void build_with_params(float length, float width, float height, string material);
+    void build_with_params(float length, float width, float height, float r, float g, float b);
     void render(bool) const;
 };
 

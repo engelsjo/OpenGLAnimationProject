@@ -47,11 +47,17 @@ void Tank::render(bool b) const {
 
     glPushMatrix();
     glTranslatef(0,0,3.5);
+    glRotatef(turret_position, 0, 0, 1);
     turret.render(b);
     glPopMatrix();
 }
 
-void Tank::update(float rdist, float ldist) {
+void Tank::update(float rdist, float ldist, float tdist) {
     track1.update(rdist);
     track2.update(ldist);
+    turret_position += tdist;
+    while(turret_position > 360)
+        turret_position -= 360;
+    while(turret_position < 0)
+        turret_position += 360;
 }

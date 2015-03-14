@@ -4,7 +4,7 @@
 
 void Turret::build (void* v) {
     turret.build_with_params(2, 3, 3, "Gold");
-    barrel.build(.3,.3,4, "Polished Gold");
+    barrel.build(.3,.3,4.5, "Polished Gold");
 }
 
 void Turret::render(bool b) const {
@@ -14,8 +14,8 @@ void Turret::render(bool b) const {
     glPopMatrix();
 
     glPushMatrix();
-    glTranslatef(2,0,1);
-    glRotatef(90,0,1,0);
+    glTranslatef(1.7,0,1);
+    glRotatef(70,0,1,0);
     barrel.render();
     glPopMatrix();
 }
