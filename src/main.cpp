@@ -58,7 +58,10 @@ float left_speed, right_speed;
 float rpm, rear_rpm;
 
 float heli_auto_rad = 75.0f;
-float auto_mode = true;
+bool auto_pilot = true;
+float gravity = 9.81; // m/s2
+float heli_mass = 500; // kg
+float force_gravity = gravity * heli_mass;
 
 /* light source setting */
 GLfloat light0_color[] = {1.0, 1.0, 1.0, 1.0};   /* color */
@@ -235,8 +238,8 @@ void init_gl() {
     heli_rear_cf =  glm::translate(glm::vec3{-11, -1.2, 3.75}) * glm::scale(glm::vec3{.25, .25, .25}) * glm::rotate (glm::radians(90.0f), glm::vec3{1,0,0});
     
     //init the rpm speed
-    rpm = 100;
-    rear_rpm = 100;
+    rpm = 10;
+    rear_rpm = 2;
     
 }
 
@@ -323,10 +326,10 @@ void key_handler (GLFWwindow *win, int key, int scan_code, int action, int mods)
                 rpm -= 5;
                 break;
             case GLFW_KEY_O:
-                rear_rpm += 5;
+                rear_rpm += 1;
                 break;
             case GLFW_KEY_K:
-                rear_rpm += 5;
+                rear_rpm -= 1;
                 break;
             case GLFW_KEY_0: //turn off the moon
                 if (glIsEnabled(GL_LIGHT0))
@@ -351,6 +354,25 @@ void key_handler (GLFWwindow *win, int key, int scan_code, int action, int mods)
                 break;
             case GLFW_KEY_5:
                 rpm = 0;
+                break;
+            case GLFW_KEY_R: //forward
+                helibase_cf = helibase_cf * glm::rotate(.1f, glm::vec3{0, 1, 0});
+                break;
+            case GLFW_KEY_F: //backward
+                helibase_cf = helibase_cf * glm::rotate(.1f, glm::vec3{0, -1, 0});
+                break;
+            case GLFW_KEY_G: //left
+                helibase_cf = helibase_cf * glm::rotate(.1f, glm::vec3{-1, 0, 0});
+                break;
+            case GLFW_KEY_H: //right
+                helibase_cf = helibase_cf * glm::rotate(.1f, glm::vec3{1, 0, 0});
+                break;
+            case GLFW_KEY_A: //turn off heli auto mode
+                auto_pilot = auto_pilot ? false : true;
+                if (auto_pilot){
+                    helibase_cf = glm::translate(glm::vec3{0, 0, 0}); //reset the heli when going to auto pilot
+                    helibase_cf = glm::translate(glm::vec3{0, 0, 25}) * glm::translate(glm::vec3{0, 75, 0});
+                }
                 break;
         }
     }
@@ -418,38 +440,64 @@ void scroll_handler (GLFWwindow *win, double xscroll, double yscroll) {
 void update_heli(float elapsedTime)
 {
     //function for updating the helicopter
-    if (auto_mode){ //fly the heli in big circles around the map
+    if (auto_pilot){ //fly the heli in big circles around the map
         float rps = .125f;
+        rear_rpm = 0;
         float rotations = rps * elapsedTime;
         float delta = -(rotations * 360);
         //post multiply to rotate around the cf of the world
         helibase_cf = glm::rotate(delta, glm::vec3{0, 0, 1}) * helibase_cf;
         
     }else{ //do some physics
+        //calc vector for gravitational pull
+        glm::vec4 gravity_vector = glm::vec4{0, 0, -1, 0} * (force_gravity);
         
+        //little bit of a physics hack... assume force upwards is equal to gravity at factor involving rpm
+        float force_up = (rpm * 1000);
+        
+        
+        //convert z axis of heli to a vector wrt world cf
+        //first locate two points on helicopter wrt helicopter cf
+        glm::vec4 point_wrt_world1 = helibase_cf * glm::vec4{0, 0, 0, 1};
+        glm::vec4 point_wrt_world2 = helibase_cf * glm::vec4{0 ,0, 1, 1};
+        glm::vec4 vector_up_wrt_world = (point_wrt_world2 - point_wrt_world1) * force_up;
+        
+        //add the two vectors to get resultant
+        glm::vec4 resultant_vector = gravity_vector + vector_up_wrt_world;
+        float magnitude = glm::length(resultant_vector); //total magnitude of vector
+        float resultant_accel = magnitude / heli_mass;
+        float distance = resultant_accel * elapsedTime * elapsedTime; //distance to travel along vector
+        
+        //scale resultant vector by distance I am to travel based upon time elapsed and newtons second law
+        if (magnitude){ //only translate if the resultant had some mag
+            float prop_of_travel = (distance / magnitude) * 50000;
+            resultant_vector *= prop_of_travel;
+            //translate wrt the world because resultant is wrt world
+            helibase_cf = glm::translate(glm::vec3(resultant_vector)) * helibase_cf;
+        }
         
     }
     
     //calc the big blade spin
-    float rps = rpm / 60.0;
+    float rps = rpm / 60.0 * 25;
     float rotations = rps * elapsedTime;
     float theta = rotations * 360;
     heli_blade_cf *= glm::rotate(theta, glm::vec3{0, 0, 1});
     
     //calc the small blade spin
-    rps = rear_rpm / 60.0;
+    rps = rear_rpm / 60.0 * 25;
     rotations = rps * elapsedTime;
     theta = rotations * 360;
     heli_rear_cf *= glm::rotate(theta, glm::vec3{0, 0, 1});
+    
+    //render the pivot from rear blade
+    helibase_cf *= glm::rotate(theta, glm::vec3{0, 0, 1});
     
 }
 
 void update() {
     auto elapsed_time = timer.elapsed() * 1000;
     timer.reset();
-    
-    //static long lastTime = clock();
-    //float elapsedTime = ((clock() - lastTime)/1000.0);
     
     float elapsedTime = (float)elapsed_time* 100000;
     
