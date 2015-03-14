@@ -106,7 +106,10 @@ void win_refresh (GLFWwindow *win) {
     glLightfv (GL_LIGHT0, GL_POSITION, glm::value_ptr(glm::column(light0_cf, 3)));
     
     /* recall that the last column of a CF is the origin of the CF */
-    glLightfv (GL_LIGHT1, GL_POSITION, glm::value_ptr(glm::column(light1_cf, 3)));
+    glm::vec4 point_on_heli = glm::vec4{3.5, 0, 0, 1}; //top of spotlight
+    glm::vec4 point_wrt_world = helibase_cf * point_on_heli;
+    
+    glLightfv(GL_LIGHT1, GL_POSITION, glm::value_ptr(point_wrt_world));
     
     /* we use the Z-axis of the light CF as the spotlight direction */
     glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, glm::value_ptr(glm::column(light1_cf, 2)));
@@ -124,8 +127,6 @@ void win_refresh (GLFWwindow *win) {
     }
     glPopMatrix();
     
-    /* render the spot light using its coordinate frame */
-    
     
     glPushMatrix(); //render the ground
     glTranslatef(0, 0, -1);
@@ -137,9 +138,6 @@ void win_refresh (GLFWwindow *win) {
     tank.render(false);
     glPopMatrix();
     
-    
-    
-    //TODO fix this once animation...
     glPushMatrix();
     {
         glMultMatrixf(glm::value_ptr(helibase_cf));
@@ -245,7 +243,8 @@ void make_model() {
     //set the light sources
     light0_cf = glm::translate(glm::vec3{-100, 100, 75});
     
-    light1_cf = glm::translate(glm::vec3{3.5, 0, 0}) * glm::rotate(glm::radians(180.0f), glm::vec3{1, 0, 0});
+    light1_cf = glm::translate(glm::vec3{3.5, 0, 1}) * glm::rotate(glm::radians(180.0f), glm::vec3{1, 0, 0});
+    
 }
 
 void switch_camera_mode() {
@@ -436,8 +435,10 @@ void update() {
     auto elapsed_time = timer.elapsed() * 1000;
     timer.reset();
     
-    static long lastTime = clock();
-    float elapsedTime = (clock() - lastTime)/1000.0;
+    //static long lastTime = clock();
+    //float elapsedTime = ((clock() - lastTime)/1000.0);
+    
+    float elapsedTime = (float)elapsed_time* 100000;
     
     //update the helicopter cfs
     update_heli(elapsed_time);
