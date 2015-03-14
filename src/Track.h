@@ -10,10 +10,12 @@ class Track : public BufferObject {
 private:
     Cylinder wheel;
     Cube tread;
+    float distance_travelled;
 
 protected:
 public:
     void build (void*);
     void render(bool) const;
+    void update(float);
 };
 #endif // TRACK_H_INCLUDED
