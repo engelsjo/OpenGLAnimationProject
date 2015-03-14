@@ -23,5 +23,6 @@ protected:
 public:
     void build (void*);
     void render(bool) const;
+    void update(float r, float l);
 };
 #endif // TANK_H_INCLUDED

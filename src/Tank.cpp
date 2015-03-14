@@ -50,3 +50,8 @@ void Tank::render(bool b) const {
     turret.render(b);
     glPopMatrix();
 }
+
+void Tank::update(float rdist, float ldist) {
+    track1.update(rdist);
+    track2.update(ldist);
+}
