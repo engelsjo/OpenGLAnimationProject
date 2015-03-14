@@ -49,6 +49,11 @@ void Cylinder::build(float topRad, float botRad, float height, string material) 
     vertices.push_back (0);  /* x */
     vertices.push_back (0); /* y */
     vertices.push_back (height/2); /* z */
+    
+    // push the BOTTOM CENTER point
+    vertices.push_back(0);
+    vertices.push_back(0);
+    vertices.push_back(-height/2);
 
 
     for (int n = 0; n < 2; n++) {
@@ -70,6 +75,10 @@ void Cylinder::build(float topRad, float botRad, float height, string material) 
     normals.push_back(0); /* normal vector for the top center vertice */
     normals.push_back(0);
     normals.push_back(1.0f);
+    
+    normals.push_back(0);
+    normals.push_back(0);
+    normals.push_back(-1);
 
     /* fill in the vertices */
 
@@ -89,6 +98,14 @@ void Cylinder::build(float topRad, float botRad, float height, string material) 
         index.push_back (k);
     /* close the last arc of the tri-fan */
     index.push_back (0);
+    
+    
+    //bottom tri fan
+    index.push_back(N_POINTS * 2 + 1);
+    for (int k = 2 * N_POINTS - 1; k >= N_POINTS; k--){
+        index.push_back(k);
+    }
+    index.push_back(2 * N_POINTS -1);
 
 
     /* copy the two CPU arrays to GPU */
@@ -151,9 +168,11 @@ void Cylinder::render() const {
     glBindBuffer (GL_ELEMENT_ARRAY_BUFFER, i_buf);
 
     int N = 2*N_POINTS + 2;
-    glDrawElements (GL_QUAD_STRIP, 2*N_POINTS + 2, GL_UNSIGNED_SHORT, 0);
+    glDrawElements (GL_QUAD_STRIP, N, GL_UNSIGNED_SHORT, 0);
     glDrawElements (GL_TRIANGLE_FAN, N_POINTS + 2, GL_UNSIGNED_SHORT,
             (void *) (sizeof(GLushort) * N));
+    glDrawElements (GL_TRIANGLE_FAN, N_POINTS + 2, GL_UNSIGNED_SHORT,
+                    (void *) (sizeof(GLushort) * (N + N_POINTS + 2)));
 
     /* deselect the buffs */
     glBindBuffer (GL_ARRAY_BUFFER, 0);

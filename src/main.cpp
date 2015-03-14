@@ -42,7 +42,6 @@ int screen_ctr_x, screen_ctr_y;
 float time_elapsed;
 static Timer timer;
 
-Cube ground;
 Cube origin;
 Sphere sphere;
 Cylinder spot;
@@ -57,6 +56,9 @@ glm::mat4 helibase_cf, heli_blade_cf, heli_rear_cf;
 
 float left_speed, right_speed;
 float rpm, rear_rpm;
+
+float heli_auto_rad = 75.0f;
+float auto_mode = true;
 
 /* light source setting */
 GLfloat light0_color[] = {1.0, 1.0, 1.0, 1.0};   /* color */
@@ -102,6 +104,28 @@ void win_refresh (GLFWwindow *win) {
     /* place the camera using the camera coordinate frame */
     glMultMatrixf (glm::value_ptr(camera_cf));
     
+    
+    /* Specify the reflectance property of the ground using glColor
+     (instead of glMaterial....)
+     */
+    glEnable (GL_COLOR_MATERIAL);
+    glColorMaterial(GL_FRONT, GL_AMBIENT_AND_DIFFUSE);
+    glColor3ub (29, 100, 56);
+    
+    glBegin (GL_QUADS);
+    const int GROUND_SIZE = 150;
+    glNormal3f (0.0f, 0.0f, 1.0f); /* normal vector for the ground */
+    glVertex2i (GROUND_SIZE, GROUND_SIZE);
+    glNormal3f (0.0f, 0.0f, 1.0f); /* normal vector for the ground */
+    glVertex2i (-GROUND_SIZE, GROUND_SIZE);
+    glNormal3f (0.0f, 0.0f, 1.0f); /* normal vector for the ground */
+    glVertex2i (-GROUND_SIZE, -GROUND_SIZE);
+    glNormal3f (0.0f, 0.0f, 1.0f); /* normal vector for the ground */
+    glVertex2i (GROUND_SIZE, -GROUND_SIZE);
+    glEnd();
+    glDisable (GL_COLOR_MATERIAL);
+    
+    
     /* place the light source in the scene. */
     glLightfv (GL_LIGHT0, GL_POSITION, glm::value_ptr(glm::column(light0_cf, 3)));
     
@@ -125,12 +149,6 @@ void win_refresh (GLFWwindow *win) {
         sphere.render();
         glMaterialfv(GL_FRONT, GL_EMISSION, black_color);
     }
-    glPopMatrix();
-    
-    
-    glPushMatrix(); //render the ground
-    glTranslatef(0, 0, -1);
-    ground.render(false);
     glPopMatrix();
     
     glPushMatrix();
@@ -212,7 +230,7 @@ void init_gl() {
     tank_cf = glm::translate(glm::vec3{40,0,0});
     
     //set up helicopter's cfs
-    helibase_cf = glm::translate(glm::vec3{30, 0, 25});
+    helibase_cf = glm::translate(glm::vec3{0, 0, 25}) * glm::translate(glm::vec3{0, 75, 0});
     heli_blade_cf = glm::translate(glm::vec3{0, 0, 5.75}) * glm::rotate (glm::radians(45.0f), glm::vec3{0,0,1});
     heli_rear_cf =  glm::translate(glm::vec3{-11, -1.2, 3.75}) * glm::scale(glm::vec3{.25, .25, .25}) * glm::rotate (glm::radians(90.0f), glm::vec3{1,0,0});
     
@@ -225,7 +243,6 @@ void init_gl() {
 void make_model() {
     time_elapsed = 0;
     //build object models
-    ground.build_with_params(2, 400, 400, "Emerald");
     origin.build_with_params(40, 10, 10, "Chrome");
     tank.build(nullptr);
     
@@ -259,21 +276,12 @@ void key_handler (GLFWwindow *win, int key, int scan_code, int action, int mods)
     if (mods == GLFW_MOD_SHIFT) {
         switch(key) {
             case GLFW_KEY_X:
-                light1_cf *= glm::translate(glm::vec3{1, 0, 0});
-                break;
-            case GLFW_KEY_Y:
-                light1_cf *= glm::translate(glm::vec3{0, 1, 0});
-                break;
-            case GLFW_KEY_Z:
-                light1_cf *= glm::translate(glm::vec3{0, 0, 1});
-                break;
-            case GLFW_KEY_2:
                 helibase_cf *= glm::translate(glm::vec3{-1, 0, 0});
                 break;
-            case GLFW_KEY_3:
+            case GLFW_KEY_Y:
                 helibase_cf *= glm::translate(glm::vec3{0, -1, 0});
                 break;
-            case GLFW_KEY_4:
+            case GLFW_KEY_Z:
                 helibase_cf *= glm::translate(glm::vec3{0, 0, -1});
                 break;
                 
@@ -320,15 +328,6 @@ void key_handler (GLFWwindow *win, int key, int scan_code, int action, int mods)
             case GLFW_KEY_K:
                 rear_rpm += 5;
                 break;
-            case GLFW_KEY_2:
-                helibase_cf *= glm::translate(glm::vec3{1, 0, 0});
-                break;
-            case GLFW_KEY_3:
-                helibase_cf *= glm::translate(glm::vec3{0, 1, 0});
-                break;
-            case GLFW_KEY_4:
-                helibase_cf *= glm::translate(glm::vec3{0, 0, 1});
-                break;
             case GLFW_KEY_0: //turn off the moon
                 if (glIsEnabled(GL_LIGHT0))
                     glDisable(GL_LIGHT0);
@@ -342,13 +341,16 @@ void key_handler (GLFWwindow *win, int key, int scan_code, int action, int mods)
                     glEnable(GL_LIGHT1);
                 break;
             case GLFW_KEY_X:
-                light1_cf *= glm::translate(glm::vec3{-1, 0, 0});
+                helibase_cf *= glm::translate(glm::vec3{1, 0, 0});
                 break;
             case GLFW_KEY_Y:
-                light1_cf *= glm::translate(glm::vec3{0, -1, 0});
+                helibase_cf *= glm::translate(glm::vec3{0, 1, 0});
                 break;
             case GLFW_KEY_Z:
-                light1_cf *= glm::translate(glm::vec3{0, 0, -1});
+                helibase_cf *= glm::translate(glm::vec3{0, 0, 1});
+                break;
+            case GLFW_KEY_5:
+                rpm = 0;
                 break;
         }
     }
@@ -416,6 +418,17 @@ void scroll_handler (GLFWwindow *win, double xscroll, double yscroll) {
 void update_heli(float elapsedTime)
 {
     //function for updating the helicopter
+    if (auto_mode){ //fly the heli in big circles around the map
+        float rps = .125f;
+        float rotations = rps * elapsedTime;
+        float delta = -(rotations * 360);
+        //post multiply to rotate around the cf of the world
+        helibase_cf = glm::rotate(delta, glm::vec3{0, 0, 1}) * helibase_cf;
+        
+    }else{ //do some physics
+        
+        
+    }
     
     //calc the big blade spin
     float rps = rpm / 60.0;
