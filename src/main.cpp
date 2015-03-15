@@ -260,12 +260,12 @@ void init_gl() {
     tank_cf = glm::translate(glm::vec3{40,0,0});
 
     //set up helicopter's cfs
-    helibase_cf = glm::translate(glm::vec3{0, 0, 25}) * glm::translate(glm::vec3{0, 75, 0});
+    helibase_cf = glm::translate(glm::vec3{0, 0, 40}) * glm::translate(glm::vec3{0, 75, 0});
     heli_blade_cf = glm::translate(glm::vec3{0, 0, 5.75}) * glm::rotate (glm::radians(45.0f), glm::vec3{0,0,1});
     heli_rear_cf =  glm::translate(glm::vec3{-11, -1.2, 3.75}) * glm::scale(glm::vec3{.25, .25, .25}) * glm::rotate (glm::radians(90.0f), glm::vec3{1,0,0});
 
     //init the rpm speed
-    rpm = 100;
+    rpm = 50;
     rear_rpm = 100;
 
     right_speed = 0;
@@ -447,7 +447,7 @@ void key_handler (GLFWwindow *win, int key, int scan_code, int action, int mods)
                 auto_pilot = auto_pilot ? false : true;
                 if (auto_pilot){
                     helibase_cf = glm::translate(glm::vec3{0, 0, 0}); //reset the heli when going to auto pilot
-                    helibase_cf = glm::translate(glm::vec3{0, 0, 25}) * glm::translate(glm::vec3{0, 75, 0});
+                    helibase_cf = glm::translate(glm::vec3{0, 0, 40}) * glm::translate(glm::vec3{0, 75, 0});
                 }
                 break;
         }
@@ -617,7 +617,7 @@ void update() {
 
     float rdist = right_speed * elapsedTime / 200000.0;
     float ldist = left_speed * elapsedTime / 200000.0;
-    float tdist = turret_speed * elapsedTime /200000.0;
+    float tdist = turret_speed * elapsedTime / 100;
     tank.update(rdist, ldist, tdist);
 
 
