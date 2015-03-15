@@ -254,7 +254,9 @@ void init_gl() {
     glLineWidth(3.0);
 
     /* place the camera at Z=+5 (notice that the sign is OPPOSITE!) */
-    camera_cf *= glm::translate(glm::vec3{0, 0, -100});
+    camera_cf = glm::translate(glm::vec3{-125, 125, -225}) * camera_cf;
+    camera_cf = glm::rotate(glm::radians(-45.0f), glm::vec3{0, 0, 1}) * camera_cf;
+    camera_cf = glm::rotate(glm::radians(-45.0f), glm::vec3{1, 0, 0}) * camera_cf;
     camera_cf = glm::scale(glm::vec3 {.02,.02,.02}) * camera_cf;
 
     tank_cf = glm::translate(glm::vec3{40,0,0});
